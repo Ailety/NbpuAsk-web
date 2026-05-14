@@ -40,7 +40,6 @@ export default defineConfig(async ({ command }) => {
         '/conversation': {
           target: 'http://localhost:8088',
           changeOrigin: true,
-          // 拦截代理响应，强行禁止 Node.js 的 http-proxy 缓冲
           configure: (proxy) => {
             proxy.on('proxyRes', (proxyRes, req, res) => {
               res.setHeader('X-Accel-Buffering', 'no')
@@ -51,39 +50,16 @@ export default defineConfig(async ({ command }) => {
       },
     },
     build: {
-      minify: true, // 开启压缩
+      minify: true,
       rollupOptions: {
-        treeshake: true, // 开启 Tree Shaking，消除未使用的代码，减小最终的包大小
+        treeshake: true,
         output: {
-          chunkFileNames: `assets/js/[name]-[hash].js`, //代码块文件名
-          entryFileNames: `assets/js/[name]-[hash].js`, //入口文件名
-          assetFileNames: `assets/[ext]/[name]-[hash].[ext]`, // 资源文件名
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              // 精细化拆分第三方库[10,11](@ref)
-              if (
-                id.includes('/vue/') ||
-                id.includes('\\vue\\') ||
-                id.includes('vue-router') ||
-                id.includes('vuex') ||
-                id.includes('pinia') ||
-                id.includes('@vue/')
-              ) {
-                return 'vendor-vue'
-              }
-              if (
-                id.includes('axios') ||
-                id.includes('markdown-it') ||
-                id.includes('@microsoft/fetch-event-source')
-              ) {
-                return 'vendor-chat'
-              }
-              if (id.includes('vue-toastification')) return 'vendor-toast'
-              if (id.includes('primevue')) return 'vendor-primevue'
-              if (id.includes('primeicons')) return 'vendor-primeicons'
-              if (id.includes('element-plus')) return 'vendor-element-plus'
-              if (id.includes('ant-design-vue')) return 'vendor-ant-design-vue'
-              return 'vendor-core' // 其他依赖归为core
+              return 'vendor'
             }
           },
         },
