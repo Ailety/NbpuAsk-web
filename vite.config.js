@@ -16,7 +16,7 @@ export default defineConfig(async ({ command }) => {
   }
 
   return {
-    base: './',
+    base: '/',
     plugins: [
       vue(),
       ...devPlugins,
