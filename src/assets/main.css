@@ -1,0 +1,60 @@
+* {
+  font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+}
+
+:root {
+  --color-page-bg: #fcfcfc;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f8fafc;
+  --color-surface-hover: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #eff6ff;
+  --color-accent: #0ea5e9;
+  --color-danger: #ff4d4f;
+  --color-danger-soft: #fff1f0;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-tooltip-bg: #333333;
+  --color-tooltip-text: #ffffff;
+
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 22px rgba(15, 23, 42, 0.06);
+  --shadow-floating: 0 16px 36px rgba(15, 23, 42, 0.14);
+  --shadow-primary: 0 12px 24px rgba(37, 99, 235, 0.2);
+  --shadow-focus: 0 0 0 3px rgba(96, 165, 250, 0.16);
+
+  --duration-fast: 0.18s;
+  --duration-base: 0.2s;
+  --duration-panel: 0.28s;
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pi {
+  font-family: 'primeicons' !important;
+}
+
+.floating-tooltip {
+  position: fixed;
+  padding: 8px 10px;
+  color: var(--color-tooltip-text);
+  background: var(--color-tooltip-bg);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-floating);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1200;
+}
