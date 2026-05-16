@@ -19,28 +19,28 @@
       </div>
     </div>
 
-    <div class="chat-window" :class="{ 'welcome-mode': isWelcomeMode }">
-      <transition
-        name="welcome-fade"
-        @before-leave="handleWelcomeBeforeLeave"
-        @after-leave="handleWelcomeAfterLeave"
-        @leave-cancelled="handleWelcomeAfterLeave"
-      >
-        <div
-          ref="welcomeElements"
-          class="welcome-elements"
-          :class="{ 'is-leaving': isWelcomeLeaving }"
-          :style="welcomeLeavingStyle"
-          v-if="isWelcomeMode"
-        >
-          <div class="welcome-content">
-            <div class="welcome-logo">
-              <img src="@/assets/logo.png" alt="Logo" />
-            </div>
-            <h1 class="welcome-title" :data-title="welcomeTitle">{{ welcomeTitle }}</h1>
+    <div ref="chatWindowRoot" class="chat-window" :class="{ 'welcome-mode': isWelcomeMode }">
+      <div ref="welcomeElements" class="welcome-elements" v-if="isWelcomeMode">
+        <div class="welcome-content">
+          <div class="welcome-logo">
+            <img src="@/assets/logo.png" alt="Logo" />
           </div>
+          <h1 class="welcome-title" :data-title="welcomeTitle">{{ welcomeTitle }}</h1>
         </div>
-      </transition>
+      </div>
+      <div
+        v-if="welcomeSnapshotVisible"
+        class="welcome-leave-snapshot"
+        :style="welcomeSnapshotStyle"
+        @animationend="clearWelcomeSnapshot"
+      >
+        <div class="welcome-content">
+          <div class="welcome-logo">
+            <img src="@/assets/logo.png" alt="Logo" />
+          </div>
+          <h1 class="welcome-title" :data-title="welcomeTitle">{{ welcomeTitle }}</h1>
+        </div>
+      </div>
 
       <div class="chat-area" :class="{ 'fade-out': isWelcomeMode }">
         <div class="chat-header">
@@ -199,12 +199,13 @@ const messageInput = ref(null)
 const chatMessages = ref(null)
 const titleInput = ref(null)
 const welcomeElements = ref(null)
+const chatWindowRoot = ref(null)
 const isTitleEditing = ref(false)
 const titleDraft = ref('')
 const elapsedNow = ref(Date.now())
 const showConversationLoading = ref(false)
-const isWelcomeLeaving = ref(false)
-const welcomeLeavingStyle = ref({})
+const welcomeSnapshotVisible = ref(false)
+const welcomeSnapshotStyle = ref({})
 const { tooltip, tooltipStyle, showTooltip, hideTooltip } = useFloatingTooltip()
 let thinkingTimer = null
 let autoScrollFrame = null
@@ -242,13 +243,11 @@ watch(
   isWelcomeMode,
   (nextWelcomeMode, previousWelcomeMode) => {
     if (previousWelcomeMode && !nextWelcomeMode) {
-      freezeWelcomeLeavingPosition()
-      isWelcomeLeaving.value = true
+      showWelcomeLeaveSnapshot()
     }
 
     if (nextWelcomeMode) {
-      isWelcomeLeaving.value = false
-      welcomeLeavingStyle.value = {}
+      clearWelcomeSnapshot()
     }
   },
   { flush: 'sync' },
@@ -281,30 +280,23 @@ const titleFrameStyle = computed(() => {
   }
 })
 
-function handleWelcomeBeforeLeave() {
-  freezeWelcomeLeavingPosition()
-  isWelcomeLeaving.value = true
-}
-
-function handleWelcomeAfterLeave() {
-  isWelcomeLeaving.value = false
-  welcomeLeavingStyle.value = {}
-}
-
-function freezeWelcomeLeavingPosition() {
+function showWelcomeLeaveSnapshot() {
   const rect = welcomeElements.value?.getBoundingClientRect()
-  if (!rect) return
+  const rootRect = chatWindowRoot.value?.getBoundingClientRect()
+  if (!rect || !rootRect) return
 
-  welcomeLeavingStyle.value = {
-    position: 'fixed',
-    left: `${rect.left}px`,
-    top: `${rect.top}px`,
+  welcomeSnapshotStyle.value = {
+    left: `${rect.left - rootRect.left}px`,
+    top: `${rect.top - rootRect.top}px`,
     width: `${rect.width}px`,
-    transform: 'none',
-    margin: '0',
-    zIndex: 5,
-    pointerEvents: 'none',
+    height: `${rect.height}px`,
   }
+  welcomeSnapshotVisible.value = true
+}
+
+function clearWelcomeSnapshot() {
+  welcomeSnapshotVisible.value = false
+  welcomeSnapshotStyle.value = {}
 }
 
 const pendingModelMessage = computed(() => {
@@ -925,6 +917,17 @@ defineExpose({
   }
 }
 
+.welcome-leave-snapshot {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  pointer-events: none;
+  animation: welcome-snapshot-leave 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
 .chat-header {
   height: 104px;
   min-height: 104px;
@@ -1284,8 +1287,9 @@ defineExpose({
   pointer-events: none;
   animation: none !important;
   transition:
-    opacity 0.14s ease,
-    transform 0.14s ease;
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.22s ease;
 }
 
 .welcome-elements.is-leaving,
@@ -1313,7 +1317,21 @@ defineExpose({
 
 .welcome-fade-leave-to {
   opacity: 0;
+  filter: blur(3px);
   transform: translateY(8px);
+}
+
+@keyframes welcome-snapshot-leave {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(8px);
+  }
 }
 
 .chat-area {

@@ -12,7 +12,7 @@ const store = createStore({
       rnConvIndex: -1, // 重命名的对话索引
       copyrightText: 'Copyright 2025-2026 NBPU-陈敬幸 版权所有', // 版权信息
       CONVERSATION_LOADING_MIN_MS: 700, // 对话加载最短时长
-      serverUrl: '/api', // 后端url
+      serverUrl: '/api', // 后端url 本地http://localhost:8088 云端/api
     }
   },
   mutations: {

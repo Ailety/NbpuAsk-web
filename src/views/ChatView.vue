@@ -106,6 +106,7 @@ async function handleRouteId(convId, convsList = null, existingLoadingToken = nu
   if (getCurConvIndex() !== index) {
     const loadingToken = existingLoadingToken || beginConversationLoading()
     const requestedConversationId = convs[index].conversationId
+    let shouldJumpToEnd = false
     try {
       await nextTick()
       setCurConvIndex(index)
@@ -129,9 +130,12 @@ async function handleRouteId(convId, convsList = null, existingLoadingToken = nu
       }
 
       setCurConvIndex(updatedIndex)
-      await jumpToConversationEnd()
+      shouldJumpToEnd = true
     } finally {
       finishConversationLoading(loadingToken)
+      if (shouldJumpToEnd) {
+        await jumpToConversationEnd(requestedConversationId)
+      }
     }
   } else if (existingLoadingToken) {
     finishConversationLoading(existingLoadingToken)
@@ -161,9 +165,37 @@ function resolveStableViewState() {
   return getCurConvIndex() === -1 ? CHAT_VIEW_STATE.WELCOME : CHAT_VIEW_STATE.READY
 }
 
-async function jumpToConversationEnd() {
+function waitForFrames(count = 1) {
+  return new Promise((resolve) => {
+    const step = () => {
+      count -= 1
+      if (count <= 0) {
+        resolve()
+        return
+      }
+      requestAnimationFrame(step)
+    }
+
+    requestAnimationFrame(step)
+  })
+}
+
+function scheduleConversationEndCalibration(conversationId, delay) {
+  window.setTimeout(() => {
+    if (route.params.id === conversationId) {
+      chatWindow.value?.scrollToBottom?.({ force: true, immediate: true })
+    }
+  }, delay)
+}
+
+async function jumpToConversationEnd(conversationId = route.params.id) {
   await nextTick()
+  await waitForFrames(2)
+  if (route.params.id !== conversationId) return
+
   await chatWindow.value?.scrollToBottom?.({ force: true, immediate: true })
+  scheduleConversationEndCalibration(conversationId, 120)
+  scheduleConversationEndCalibration(conversationId, 420)
 }
 
 function createNewConversation() {
